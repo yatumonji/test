@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>緯度経度取得</title>
+</head>
+<body>
+    <h1>現在の緯度経度</h1>
+    <p id="latitude">緯度:</p>
+    <p id="longitude">経度:</p>
+
+    <script>
+        // 位置情報の取得に失敗した場合のエラーハンドリング
+        function showError(error) {
+            console.error("位置情報の取得に失敗しました: " + error.message);
+        }
+
+        // 緯度と経度を取得して表示する関数
+        function showPosition(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+
+            // 緯度と経度をHTML要素に表示
+            document.getElementById("latitude").textContent = "緯度: " + latitude;
+            document.getElementById("longitude").textContent = "経度: " + longitude;
+
+            // ページ読み込み時にCSVにデータを追加する
+            saveDataToCSV(latitude, longitude);
+        }
+
+        // データをCSVに保存する関数
+        function saveDataToCSV(latitude, longitude) {
+            // Create a new XMLHttpRequest object
+            var xhr = new XMLHttpRequest();
+
+            // Configure it: POST-request for the given URL /save_data.php
+            xhr.open('POST', 'save_data.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            // Prepare the data to be sent
+            var data = 'latitude=' + encodeURIComponent(latitude) + '&longitude=' + encodeURIComponent(longitude);
+
+            // Send the request with the data
+            xhr.send(data);
+        }
+
+        // 2秒ごとに位置情報を取得
+        setInterval(function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                console.error("Geolocation APIはサポートされていません");
+            }
+        }, 2000); // 2000ミリ秒ごとに実行 (2秒ごと)
+    </script>
+</body>
+</html>
+
