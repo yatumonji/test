@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSVデータを取得して表示</title>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+
+<body >
+    <h1>CSVデータを取得して表示</h1>
+    
+    <div id="dataContainer"></div>
+
+    <p id="latitude"></p>
+    <p id="longitude"></p>
+   
+    <div id="mapcontainer" style="width: 600px; height: 400px"></div>
+
+    <script>
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'fetch_data.php', true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var data = JSON.parse(xhr.responseText);
+                displayData(data);
+                setTimeout(function () {
+                    initMap(data);
+                }, 100);
+            }
+        };
+        xhr.send();
+
+       
+
+        function displayData(data) {
+            var dataContainer = document.getElementById('dataContainer');
+            for (var i = 0; i < data.length; i++) {
+                var latitude = data[i].latitude;
+                var longitude = data[i].longitude;
+
+                var latitudeElement = document.createElement('p');    //緯度表示
+                latitudeElement.textContent = "緯度: " + latitude;
+
+                var longitudeElement = document.createElement('p');    //経度表示
+                longitudeElement.textContent = "経度: " + longitude;
+
+                dataContainer.appendChild(latitudeElement);
+                dataContainer.appendChild(longitudeElement);
+            }
+
+        
+        }
+
+
+       
+
+
+
+        function initMap(data) {
+            var map = L.map('mapcontainer').setView([0, 0], 10);
+
+            L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: "<a href='https://maps.gsi.go.jp/?hc=hic#16/36.366631/140.489698/&base=std&ls=std&disp=1&vs=c1g1j0h0k0l0u0t0z0r0s0m0f1' target='_blank'>地理院タイル</a>"
+            }).addTo(map);
+
+            // Get the first latitude and longitude from the data
+            var initialLatitude = parseFloat(data[0].latitude);
+            var initialLongitude = parseFloat(data[0].longitude);
+
+            var marker = { pos: [initialLatitude, initialLongitude], name: "Current Location" };
+            var popup = L.popup().setContent(marker.name);
+            var beforeMarker;
+
+            for (let index = 0; index < 100; index++) {
+                setTimeout(function () {
+                    if (beforeMarker) {
+                        map.removeLayer(beforeMarker);
+                    }
+                   /*marker.pos[0] = marker.pos[0] + 0.0001;*/
+                    beforeMarker = L.marker(marker.pos, { title: marker.name }).bindPopup(popup).addTo(map);
+                    map.panTo(marker.pos);
+                }, 500 * index);
+            }
+        }
+    </script>
+</body>
+
+</html>
